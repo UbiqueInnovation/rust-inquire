@@ -597,6 +597,7 @@ pub mod date {
             selected_date: chrono::NaiveDate,
             min_date: Option<chrono::NaiveDate>,
             max_date: Option<chrono::NaiveDate>,
+            marked_dates: &[chrono::NaiveDate],
         ) -> Result<()>;
     }
 
@@ -619,6 +620,7 @@ pub mod date {
             selected_date: chrono::NaiveDate,
             min_date: Option<chrono::NaiveDate>,
             max_date: Option<chrono::NaiveDate>,
+            marked_dates: &[chrono::NaiveDate],
         ) -> Result<()> {
             macro_rules! write_prefix {
                 () => {{
@@ -697,6 +699,8 @@ pub mod date {
                         }
                     } else if date_it == today {
                         style_sheet = self.render_config.calendar.today_date;
+                    } else if marked_dates.contains(&date_it) {
+                        style_sheet = self.render_config.calendar.marked_date;
                     } else if is_weekend(date_it) {
                         style_sheet = self.render_config.calendar.weekend;
                     } else if date_it.month() != month.number_from_month() {

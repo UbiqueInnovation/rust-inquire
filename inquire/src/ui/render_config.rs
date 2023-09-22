@@ -433,6 +433,8 @@ impl<'a> ErrorMessageRenderConfig<'a> {
 pub mod calendar {
     //! Module containing additional render config for date prompts.
 
+    use crate::ui::Attributes;
+
     use super::{Color, StyleSheet, Styled};
 
     /// Calendar configuration for error messages.
@@ -470,6 +472,9 @@ pub mod calendar {
 
         /// Style sheet for weekends
         pub weekend: StyleSheet,
+
+        /// Style sheet for marked dates
+        pub marked_date: StyleSheet,
     }
 
     impl<'a> CalendarRenderConfig<'a> {
@@ -484,6 +489,7 @@ pub mod calendar {
                 different_month_date: StyleSheet::empty(),
                 unavailable_date: StyleSheet::empty(),
                 weekend: StyleSheet::empty(),
+                marked_date: StyleSheet::empty(),
             }
         }
 
@@ -502,6 +508,9 @@ pub mod calendar {
                 different_month_date: StyleSheet::empty().with_fg(Color::DarkGrey),
                 unavailable_date: StyleSheet::empty().with_fg(Color::DarkGrey),
                 weekend: StyleSheet::empty().with_fg(Color::DarkRed),
+                marked_date: StyleSheet::empty()
+                    .with_attr(Attributes::BOLD)
+                    .with_fg(Color::DarkGreen),
             }
         }
 

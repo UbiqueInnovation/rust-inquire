@@ -5,6 +5,8 @@ mod prompt;
 #[cfg(feature = "crossterm")]
 mod test;
 
+use std::collections::HashMap;
+
 pub use action::*;
 
 use chrono::NaiveDate;
@@ -81,8 +83,8 @@ pub struct DateSelect<'a> {
     /// Max date allowed to be selected.
     pub max_date: Option<NaiveDate>,
 
-    /// Dates to mark with special styling.
-    pub marked_dates: &'a [NaiveDate],
+    /// Dates to mark with special styling with detail info
+    pub marked_dates: Option<&'a HashMap<NaiveDate, String>>,
 
     /// Help message to be presented to the user.
     pub help_message: Option<&'a str>,
@@ -137,7 +139,7 @@ impl<'a> DateSelect<'a> {
     pub const DEFAULT_MAX_DATE: Option<NaiveDate> = None;
 
     /// Default marked dates.
-    pub const DEFAULT_MARKED_DATES: &'a [NaiveDate] = &[];
+    pub const DEFAULT_MARKED_DATES: Option<&'a HashMap<NaiveDate, String>> = None;
 
     /// Creates a [DateSelect] with the provided message, along with default configuration values.
     pub fn new(message: &'a str) -> Self {
@@ -192,8 +194,8 @@ impl<'a> DateSelect<'a> {
     }
 
     /// Sets the marked dates.
-    pub fn with_marked_dates(mut self, marked_dates: &'a [NaiveDate]) -> Self {
-        self.marked_dates = marked_dates;
+    pub fn with_marked_dates(mut self, marked_dates: &'a HashMap<NaiveDate, String>) -> Self {
+        self.marked_dates = Some(marked_dates);
         self
     }
 

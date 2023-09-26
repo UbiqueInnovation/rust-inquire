@@ -27,6 +27,8 @@ pub trait CommonBackend {
 
     fn render_error_message(&mut self, error: &ErrorMessage) -> Result<()>;
     fn render_help_message(&mut self, help: &str) -> Result<()>;
+
+    fn render_selection_details(&mut self, selection_details: &str) -> Result<()>;
 }
 
 pub trait TextBackend: CommonBackend {
@@ -449,6 +451,15 @@ where
 
         Ok(())
     }
+
+    fn render_selection_details(&mut self, selection_details: &str) -> Result<()> {
+        self.terminal
+            .write_styled(&Styled::new(selection_details))?;
+
+        self.new_line()?;
+
+        Ok(())
+    }
 }
 
 impl<'a, T> TextBackend for Backend<'a, T>
@@ -574,7 +585,7 @@ where
 
 #[cfg(feature = "date")]
 pub mod date {
-    use std::{io::Result, ops::Sub};
+    use std::{collections::HashMap, io::Result, ops::Sub};
 
     use chrono::{Datelike, Duration};
 
@@ -597,7 +608,7 @@ pub mod date {
             selected_date: chrono::NaiveDate,
             min_date: Option<chrono::NaiveDate>,
             max_date: Option<chrono::NaiveDate>,
-            marked_dates: &[chrono::NaiveDate],
+            marked_dates: Option<&HashMap<chrono::NaiveDate, String>>,
         ) -> Result<()>;
     }
 
@@ -620,7 +631,7 @@ pub mod date {
             selected_date: chrono::NaiveDate,
             min_date: Option<chrono::NaiveDate>,
             max_date: Option<chrono::NaiveDate>,
-            marked_dates: &[chrono::NaiveDate],
+            marked_dates: Option<&HashMap<chrono::NaiveDate, String>>,
         ) -> Result<()> {
             macro_rules! write_prefix {
                 () => {{
@@ -699,7 +710,7 @@ pub mod date {
                         }
                     } else if date_it == today {
                         style_sheet = self.render_config.calendar.today_date;
-                    } else if marked_dates.contains(&date_it) {
+                    } else if marked_dates_contains(&date_it, marked_dates) {
                         style_sheet = self.render_config.calendar.marked_date;
                     } else if is_weekend(date_it) {
                         style_sheet = self.render_config.calendar.weekend;
@@ -729,6 +740,16 @@ pub mod date {
             }
 
             Ok(())
+        }
+    }
+
+    fn marked_dates_contains(
+        date: &chrono::NaiveDate,
+        marked_dates: Option<&HashMap<chrono::NaiveDate, String>>,
+    ) -> bool {
+        match marked_dates {
+            Some(marked_dates) => marked_dates.contains_key(date),
+            None => false,
         }
     }
 }

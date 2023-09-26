@@ -1,5 +1,6 @@
 use std::{
     cmp::{max, min},
+    collections::HashMap,
     ops::Add,
 };
 
@@ -24,7 +25,7 @@ pub struct DateSelectPrompt<'a> {
     help_message: Option<&'a str>,
     formatter: DateFormatter<'a>,
     validators: Vec<Box<dyn DateValidator>>,
-    marked_dates: &'a [NaiveDate],
+    marked_dates: Option<&'a HashMap<NaiveDate, String>>,
     error: Option<ErrorMessage>,
 }
 
@@ -187,6 +188,12 @@ where
 
         if let Some(help_message) = self.help_message {
             backend.render_help_message(help_message)?;
+        }
+
+        if let Some(marked_dates) = self.marked_dates {
+            if let Some(selection_details) = marked_dates.get(&self.current_date) {
+                backend.render_selection_details(selection_details)?;
+            }
         }
 
         Ok(())

@@ -475,6 +475,9 @@ pub mod calendar {
 
         /// Style sheet for marked dates
         pub marked_date: StyleSheet,
+
+        /// Style sheet for alternate marked dates
+        pub alternate_marked_date: StyleSheet,
     }
 
     impl<'a> CalendarRenderConfig<'a> {
@@ -490,6 +493,7 @@ pub mod calendar {
                 unavailable_date: StyleSheet::empty(),
                 weekend: StyleSheet::empty(),
                 marked_date: StyleSheet::empty(),
+                alternate_marked_date: StyleSheet::empty(),
             }
         }
 
@@ -511,6 +515,9 @@ pub mod calendar {
                 marked_date: StyleSheet::empty()
                     .with_attr(Attributes::BOLD)
                     .with_fg(Color::DarkGreen),
+                alternate_marked_date: StyleSheet::empty()
+                    .with_attr(Attributes::BOLD)
+                    .with_fg(Color::DarkBlue),
             }
         }
 

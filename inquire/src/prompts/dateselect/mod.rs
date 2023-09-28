@@ -86,6 +86,9 @@ pub struct DateSelect<'a> {
     /// Dates to mark with special styling with detail info
     pub marked_dates: Option<&'a HashMap<NaiveDate, String>>,
 
+    /// Prefix used in detail info of `marked_dates` for dates with alternate styling
+    pub alternate_marked_dates_prefix: Option<&'a str>,
+
     /// Help message to be presented to the user.
     pub help_message: Option<&'a str>,
 
@@ -141,6 +144,9 @@ impl<'a> DateSelect<'a> {
     /// Default marked dates.
     pub const DEFAULT_MARKED_DATES: Option<&'a HashMap<NaiveDate, String>> = None;
 
+    /// Default alter marked dates prefix
+    pub const DEFAULT_ALTERNATE_MARKED_DATES_PREFIX: Option<&'a str> = None;
+
     /// Creates a [DateSelect] with the provided message, along with default configuration values.
     pub fn new(message: &'a str) -> Self {
         Self {
@@ -149,6 +155,7 @@ impl<'a> DateSelect<'a> {
             min_date: Self::DEFAULT_MIN_DATE,
             max_date: Self::DEFAULT_MAX_DATE,
             marked_dates: Self::DEFAULT_MARKED_DATES,
+            alternate_marked_dates_prefix: Self::DEFAULT_ALTERNATE_MARKED_DATES_PREFIX,
             help_message: Self::DEFAULT_HELP_MESSAGE,
             vim_mode: Self::DEFAULT_VIM_MODE,
             formatter: Self::DEFAULT_FORMATTER,
@@ -196,6 +203,15 @@ impl<'a> DateSelect<'a> {
     /// Sets the marked dates.
     pub fn with_marked_dates(mut self, marked_dates: &'a HashMap<NaiveDate, String>) -> Self {
         self.marked_dates = Some(marked_dates);
+        self
+    }
+
+    /// Sets the alternate marked dates prefix.
+    pub fn with_alternate_marked_dates_prefix(
+        mut self,
+        alternate_marked_dates_prefix: &'a str,
+    ) -> Self {
+        self.alternate_marked_dates_prefix = Some(alternate_marked_dates_prefix);
         self
     }
 

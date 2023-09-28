@@ -26,6 +26,7 @@ pub struct DateSelectPrompt<'a> {
     formatter: DateFormatter<'a>,
     validators: Vec<Box<dyn DateValidator>>,
     marked_dates: Option<&'a HashMap<NaiveDate, String>>,
+    alternate_marked_dates_prefix: Option<&'a str>,
     error: Option<ErrorMessage>,
 }
 
@@ -54,6 +55,7 @@ impl<'a> DateSelectPrompt<'a> {
             formatter: so.formatter,
             validators: so.validators,
             marked_dates: so.marked_dates,
+            alternate_marked_dates_prefix: so.alternate_marked_dates_prefix,
             error: None,
         })
     }
@@ -184,6 +186,7 @@ where
             self.config.min_date,
             self.config.max_date,
             self.marked_dates,
+            self.alternate_marked_dates_prefix,
         )?;
 
         if let Some(help_message) = self.help_message {
@@ -192,10 +195,25 @@ where
 
         if let Some(marked_dates) = self.marked_dates {
             if let Some(selection_details) = marked_dates.get(&self.current_date) {
-                backend.render_selection_details(selection_details)?;
+                backend.render_selection_details(strip_prefix_if_present(
+                    selection_details,
+                    self.alternate_marked_dates_prefix,
+                ))?;
             }
         }
 
         Ok(())
     }
+}
+
+fn strip_prefix_if_present<'a>(s: &'a str, prefix: Option<&'a str>) -> &'a str {
+    if let Some(prefix) = prefix {
+        let stripped = s.strip_prefix(prefix);
+        if let Some(stripped) = stripped {
+            return stripped;
+        }
+    }
+
+    // nothing to strip
+    s
 }

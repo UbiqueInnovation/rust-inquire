@@ -14,7 +14,7 @@ use crate::{
     ui::date::DateSelectBackend,
     utils::marked_dates_contains,
     validator::{DateValidator, ErrorMessage, Validation},
-    DateOutput, DateSelect, InquireError,
+    DateInfo, DateOutput, DateSelect, InquireError,
 };
 
 use super::{action::DateSelectPromptAction, config::DateSelectConfig};
@@ -26,8 +26,7 @@ pub struct DateSelectPrompt<'a> {
     help_message: Option<&'a str>,
     formatter: DateFormatter<'a>,
     validators: Vec<Box<dyn DateValidator>>,
-    marked_dates: Option<&'a HashMap<NaiveDate, String>>,
-    alternate_marked_dates_prefix: Option<&'a str>,
+    marked_dates: Option<&'a HashMap<NaiveDate, DateInfo>>,
     error: Option<ErrorMessage>,
     deletion_requested: bool,
     to_delete: bool,
@@ -58,7 +57,6 @@ impl<'a> DateSelectPrompt<'a> {
             formatter: so.formatter,
             validators: so.validators,
             marked_dates: so.marked_dates,
-            alternate_marked_dates_prefix: so.alternate_marked_dates_prefix,
             error: None,
             deletion_requested: false,
             to_delete: false,
@@ -66,26 +64,20 @@ impl<'a> DateSelectPrompt<'a> {
     }
 
     fn request_deletion(&mut self) -> ActionResult {
-        if marked_dates_contains(&self.current_date, self.marked_dates) {
-            let info = self.marked_dates.unwrap().get(&self.current_date).unwrap();
-
-            let mut deletable = false;
-            if let Some(prefix) = self.alternate_marked_dates_prefix {
-                if !info.starts_with(prefix) {
-                    deletable = true;
-                }
-            } else {
-                deletable = true;
-            }
-
-            if deletable {
-                self.deletion_requested = true;
-                self.error = Some(ErrorMessage::from(format!(
-                    "Are you sure you want to delete logs for date: {}? [y/n]",
-                    self.current_date
-                )));
-                return ActionResult::NeedsRedraw;
-            }
+        if marked_dates_contains(&self.current_date, self.marked_dates)
+            && self
+                .marked_dates
+                .unwrap()
+                .get(&self.current_date)
+                .unwrap()
+                .deletable
+        {
+            self.deletion_requested = true;
+            self.error = Some(ErrorMessage::from(format!(
+                "Are you sure you want to delete logs for date: {}? [y/n]",
+                self.current_date
+            )));
+            return ActionResult::NeedsRedraw;
         }
 
         ActionResult::Clean
@@ -235,7 +227,6 @@ where
             self.config.min_date,
             self.config.max_date,
             self.marked_dates,
-            self.alternate_marked_dates_prefix,
         )?;
 
         if let Some(help_message) = self.help_message {
@@ -244,25 +235,10 @@ where
 
         if let Some(marked_dates) = self.marked_dates {
             if let Some(selection_details) = marked_dates.get(&self.current_date) {
-                backend.render_selection_details(strip_prefix_if_present(
-                    selection_details,
-                    self.alternate_marked_dates_prefix,
-                ))?;
+                backend.render_selection_details(&selection_details.details)?;
             }
         }
 
         Ok(())
     }
-}
-
-fn strip_prefix_if_present<'a>(s: &'a str, prefix: Option<&'a str>) -> &'a str {
-    if let Some(prefix) = prefix {
-        let stripped = s.strip_prefix(prefix);
-        if let Some(stripped) = stripped {
-            return stripped;
-        }
-    }
-
-    // nothing to strip
-    s
 }

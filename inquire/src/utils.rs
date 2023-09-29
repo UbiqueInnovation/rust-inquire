@@ -2,6 +2,8 @@
 
 use std::{collections::HashMap, fmt::Debug};
 
+use crate::DateInfo;
+
 pub struct Page<'a, T> {
     /// Whether this is the first page.
     pub first: bool,
@@ -255,7 +257,7 @@ impl<'a, T> Debug for Page<'a, T> {
 
 pub fn marked_dates_contains(
     date: &chrono::NaiveDate,
-    marked_dates: Option<&HashMap<chrono::NaiveDate, String>>,
+    marked_dates: Option<&HashMap<chrono::NaiveDate, DateInfo>>,
 ) -> bool {
     match marked_dates {
         Some(marked_dates) => marked_dates.contains_key(date),

@@ -433,6 +433,8 @@ impl<'a> ErrorMessageRenderConfig<'a> {
 pub mod calendar {
     //! Module containing additional render config for date prompts.
 
+    use std::collections::HashMap;
+
     use crate::ui::Attributes;
 
     use super::{Color, StyleSheet, Styled};
@@ -477,7 +479,7 @@ pub mod calendar {
         pub marked_date: StyleSheet,
 
         /// Style sheet for alternate marked dates
-        pub alternate_marked_date: StyleSheet,
+        pub custom: Option<&'a HashMap<String, StyleSheet>>,
     }
 
     impl<'a> CalendarRenderConfig<'a> {
@@ -493,7 +495,7 @@ pub mod calendar {
                 unavailable_date: StyleSheet::empty(),
                 weekend: StyleSheet::empty(),
                 marked_date: StyleSheet::empty(),
-                alternate_marked_date: StyleSheet::empty(),
+                custom: None,
             }
         }
 
@@ -515,9 +517,7 @@ pub mod calendar {
                 marked_date: StyleSheet::empty()
                     .with_attr(Attributes::BOLD)
                     .with_fg(Color::DarkGreen),
-                alternate_marked_date: StyleSheet::empty()
-                    .with_attr(Attributes::BOLD)
-                    .with_fg(Color::DarkBlue),
+                custom: None,
             }
         }
 

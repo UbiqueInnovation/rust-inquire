@@ -591,7 +591,7 @@ pub mod date {
 
     use crate::{
         date_utils::get_start_date, date_utils::is_weekend, terminal::Terminal, ui::Styled,
-        utils::marked_dates_contains,
+        utils::marked_dates_contains, DateInfo,
     };
 
     use super::{Backend, CommonBackend};
@@ -609,8 +609,7 @@ pub mod date {
             selected_date: chrono::NaiveDate,
             min_date: Option<chrono::NaiveDate>,
             max_date: Option<chrono::NaiveDate>,
-            marked_dates: Option<&HashMap<chrono::NaiveDate, String>>,
-            alternate_marked_dates_prefix: Option<&str>,
+            marked_dates: Option<&HashMap<chrono::NaiveDate, DateInfo>>,
         ) -> Result<()>;
     }
 
@@ -633,8 +632,7 @@ pub mod date {
             selected_date: chrono::NaiveDate,
             min_date: Option<chrono::NaiveDate>,
             max_date: Option<chrono::NaiveDate>,
-            marked_dates: Option<&HashMap<chrono::NaiveDate, String>>,
-            alternate_marked_dates_prefix: Option<&str>,
+            marked_dates: Option<&HashMap<chrono::NaiveDate, DateInfo>>,
         ) -> Result<()> {
             macro_rules! write_prefix {
                 () => {{
@@ -717,11 +715,12 @@ pub mod date {
                         // default style
                         style_sheet = self.render_config.calendar.marked_date;
 
-                        // check for alternate style
-                        if let Some(prefix) = alternate_marked_dates_prefix {
-                            let info = marked_dates.unwrap().get(&date_it).unwrap();
-                            if info.starts_with(prefix) {
-                                style_sheet = self.render_config.calendar.alternate_marked_date;
+                        let custom_style = &marked_dates.unwrap().get(&date_it).unwrap().style;
+                        if let Some(custom_style) = custom_style {
+                            if let Some(custom_styles) = self.render_config.calendar.custom {
+                                if let Some(custom_style_sheet) = custom_styles.get(custom_style) {
+                                    style_sheet = *custom_style_sheet;
+                                }
                             }
                         }
                     } else if is_weekend(date_it) {

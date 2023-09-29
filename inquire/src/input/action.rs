@@ -49,13 +49,13 @@ impl InnerAction for InputAction {
             Key::Delete(_) => Self::Delete(Magnitude::Char, LineDirection::Right),
 
             Key::Home => Self::MoveCursor(Magnitude::Line, LineDirection::Left),
-            Key::Left(m) if m.contains(KeyModifiers::CONTROL) => {
+            Key::Left(m) if m.contains(KeyModifiers::SHIFT) => {
                 Self::MoveCursor(Magnitude::Word, LineDirection::Left)
             }
             Key::Left(_) => Self::MoveCursor(Magnitude::Char, LineDirection::Left),
 
             Key::End => Self::MoveCursor(Magnitude::Line, LineDirection::Right),
-            Key::Right(m) if m.contains(KeyModifiers::CONTROL) => {
+            Key::Right(m) if m.contains(KeyModifiers::SHIFT) => {
                 Self::MoveCursor(Magnitude::Word, LineDirection::Right)
             }
             Key::Right(_) => Self::MoveCursor(Magnitude::Char, LineDirection::Right),

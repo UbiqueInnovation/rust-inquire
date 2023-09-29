@@ -591,6 +591,7 @@ pub mod date {
 
     use crate::{
         date_utils::get_start_date, date_utils::is_weekend, terminal::Terminal, ui::Styled,
+        utils::marked_dates_contains,
     };
 
     use super::{Backend, CommonBackend};
@@ -751,16 +752,6 @@ pub mod date {
             }
 
             Ok(())
-        }
-    }
-
-    fn marked_dates_contains(
-        date: &chrono::NaiveDate,
-        marked_dates: Option<&HashMap<chrono::NaiveDate, String>>,
-    ) -> bool {
-        match marked_dates {
-            Some(marked_dates) => marked_dates.contains_key(date),
-            None => false,
         }
     }
 }

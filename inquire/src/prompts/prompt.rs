@@ -14,6 +14,10 @@ pub enum ActionResult {
     /// The action either didn't result in a state change or the state
     /// change does not require a redraw.
     Clean,
+
+    /// The action either didn't result in a state change or the state
+    /// change does not require a redraw.
+    Submit,
 }
 
 impl From<InputActionResult> for ActionResult {
@@ -111,6 +115,10 @@ where
                 self.render(backend)?;
                 backend.frame_finish()?;
                 last_handle = ActionResult::Clean;
+            } else if let ActionResult::Submit = last_handle {
+                if let Some(answer) = self.submit()? {
+                    break answer;
+                }
             }
 
             let key = backend.read_key()?;

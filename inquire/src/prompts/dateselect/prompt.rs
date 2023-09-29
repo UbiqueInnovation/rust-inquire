@@ -12,8 +12,9 @@ use crate::{
     formatter::DateFormatter,
     prompts::prompt::{ActionResult, Prompt},
     ui::date::DateSelectBackend,
+    utils::marked_dates_contains,
     validator::{DateValidator, ErrorMessage, Validation},
-    DateSelect, InquireError,
+    DateOutput, DateSelect, InquireError,
 };
 
 use super::{action::DateSelectPromptAction, config::DateSelectConfig};
@@ -28,6 +29,8 @@ pub struct DateSelectPrompt<'a> {
     marked_dates: Option<&'a HashMap<NaiveDate, String>>,
     alternate_marked_dates_prefix: Option<&'a str>,
     error: Option<ErrorMessage>,
+    deletion_requested: bool,
+    to_delete: bool,
 }
 
 impl<'a> DateSelectPrompt<'a> {
@@ -57,7 +60,35 @@ impl<'a> DateSelectPrompt<'a> {
             marked_dates: so.marked_dates,
             alternate_marked_dates_prefix: so.alternate_marked_dates_prefix,
             error: None,
+            deletion_requested: false,
+            to_delete: false,
         })
+    }
+
+    fn request_deletion(&mut self) -> ActionResult {
+        if marked_dates_contains(&self.current_date, self.marked_dates) {
+            let info = self.marked_dates.unwrap().get(&self.current_date).unwrap();
+
+            let mut deletable = false;
+            if let Some(prefix) = self.alternate_marked_dates_prefix {
+                if !info.starts_with(prefix) {
+                    deletable = true;
+                }
+            } else {
+                deletable = true;
+            }
+
+            if deletable {
+                self.deletion_requested = true;
+                self.error = Some(ErrorMessage::from(format!(
+                    "Are you sure you want to delete logs for date: {}? [y/n]",
+                    self.current_date
+                )));
+                return ActionResult::NeedsRedraw;
+            }
+        }
+
+        ActionResult::Clean
     }
 
     fn shift_date(&mut self, duration: Duration) -> ActionResult {
@@ -127,23 +158,26 @@ where
 {
     type Config = DateSelectConfig;
     type InnerAction = DateSelectPromptAction;
-    type Output = NaiveDate;
+    type Output = DateOutput;
 
     fn message(&self) -> &str {
         self.message
     }
 
-    fn format_answer(&self, answer: &NaiveDate) -> String {
-        (self.formatter)(*answer)
+    fn format_answer(&self, answer: &DateOutput) -> String {
+        (self.formatter)(answer.date)
     }
 
     fn config(&self) -> &DateSelectConfig {
         &self.config
     }
 
-    fn submit(&mut self) -> InquireResult<Option<NaiveDate>> {
+    fn submit(&mut self) -> InquireResult<Option<DateOutput>> {
         let answer = match self.validate_current_answer()? {
-            Validation::Valid => Some(self.cur_answer()),
+            Validation::Valid => Some(DateOutput {
+                date: self.cur_answer(),
+                to_delete: self.to_delete,
+            }),
             Validation::Invalid(msg) => {
                 self.error = Some(msg);
                 None
@@ -154,6 +188,19 @@ where
     }
 
     fn handle(&mut self, action: DateSelectPromptAction) -> InquireResult<ActionResult> {
+        if self.deletion_requested {
+            self.error = None;
+
+            // if confirmed: delete, else: forget about delete request
+            self.deletion_requested = false;
+            if action == DateSelectPromptAction::ConfirmDelete {
+                self.to_delete = true;
+                return Ok(ActionResult::Submit);
+            } else if action == DateSelectPromptAction::CancelDelete {
+                return Ok(ActionResult::NeedsRedraw);
+            }
+        }
+
         let result = match action {
             DateSelectPromptAction::GoToPrevWeek => self.shift_date(Duration::weeks(-1)),
             DateSelectPromptAction::GoToNextWeek => self.shift_date(Duration::weeks(1)),
@@ -163,6 +210,8 @@ where
             DateSelectPromptAction::GoToNextYear => self.shift_months(12),
             DateSelectPromptAction::GoToPrevMonth => self.shift_months(-1),
             DateSelectPromptAction::GoToNextMonth => self.shift_months(1),
+            DateSelectPromptAction::Delete => self.request_deletion(),
+            _ => ActionResult::Clean,
         };
 
         Ok(result)

@@ -138,7 +138,7 @@ where
 /// This function will return an error if there is a problem interacting with the terminal, or if the user
 /// cancels the operation by pressing `Ctrl+C`.
 #[cfg(feature = "date")]
-pub fn prompt_date<M>(message: M) -> InquireResult<chrono::NaiveDate>
+pub fn prompt_date<M>(message: M) -> InquireResult<crate::DateOutput>
 where
     M: AsRef<str>,
 {

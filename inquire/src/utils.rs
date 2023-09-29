@@ -1,6 +1,6 @@
 // sorry for this file
 
-use std::fmt::Debug;
+use std::{collections::HashMap, fmt::Debug};
 
 pub struct Page<'a, T> {
     /// Whether this is the first page.
@@ -250,5 +250,15 @@ impl<'a, T> Debug for Page<'a, T> {
             .field("cursor", &self.cursor)
             .field("total", &self.total)
             .finish()
+    }
+}
+
+pub fn marked_dates_contains(
+    date: &chrono::NaiveDate,
+    marked_dates: Option<&HashMap<chrono::NaiveDate, String>>,
+) -> bool {
+    match marked_dates {
+        Some(marked_dates) => marked_dates.contains_key(date),
+        None => false,
     }
 }

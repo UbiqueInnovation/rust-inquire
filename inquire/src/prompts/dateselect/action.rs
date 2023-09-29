@@ -25,6 +25,12 @@ pub enum DateSelectPromptAction {
     GoToPrevYear,
     /// Move day cursor to the next year.
     GoToNextYear,
+    /// Custom delete action
+    Delete,
+    /// Confirm delete
+    ConfirmDelete,
+    /// Cancel delete
+    CancelDelete,
 }
 
 impl InnerAction for DateSelectPromptAction {
@@ -54,6 +60,9 @@ impl InnerAction for DateSelectPromptAction {
             Key::Right(KeyModifiers::CONTROL) => Self::GoToNextMonth,
             Key::Up(KeyModifiers::CONTROL) => Self::GoToPrevYear,
             Key::Down(KeyModifiers::CONTROL) => Self::GoToNextYear,
+            Key::Delete(KeyModifiers::NONE) | Key::Backspace => Self::Delete,
+            Key::Char('y', _) => Self::ConfirmDelete,
+            Key::Char('n', _) => Self::CancelDelete,
             _ => return None,
         };
 

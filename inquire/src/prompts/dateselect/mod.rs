@@ -291,7 +291,7 @@ impl<'a> DateSelect<'a> {
     ///
     /// Meanwhile, if the user does submit an answer, the method wraps the return
     /// type with `Some`.
-    pub fn prompt_skippable(self) -> InquireResult<Option<NaiveDate>> {
+    pub fn prompt_skippable(self) -> InquireResult<Option<DateOutput>> {
         match self.prompt() {
             Ok(answer) => Ok(Some(answer)),
             Err(InquireError::OperationCanceled) => Ok(None),
@@ -301,7 +301,7 @@ impl<'a> DateSelect<'a> {
 
     /// Parses the provided behavioral and rendering options and prompts
     /// the CLI user for input according to the defined rules.
-    pub fn prompt(self) -> InquireResult<NaiveDate> {
+    pub fn prompt(self) -> InquireResult<DateOutput> {
         let terminal = get_default_terminal()?;
         let mut backend = Backend::new(terminal, self.render_config)?;
         self.prompt_with_backend(&mut backend)
@@ -310,7 +310,16 @@ impl<'a> DateSelect<'a> {
     pub(crate) fn prompt_with_backend<T: Terminal>(
         self,
         backend: &mut Backend<'a, T>,
-    ) -> InquireResult<NaiveDate> {
+    ) -> InquireResult<DateOutput> {
         DateSelectPrompt::new(self)?.prompt(backend)
     }
+}
+
+/// Date select prompt response object
+#[derive(Debug)]
+pub struct DateOutput {
+    /// Selected date
+    pub date: NaiveDate,
+    /// Flag to determine whether the selection has been marked for deletion
+    pub to_delete: bool,
 }
